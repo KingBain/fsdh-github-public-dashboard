@@ -13,15 +13,24 @@ To make this work, you need:
 ## 1. Create a Databricks Service Principal
 
 1. Go to your Databricks workspace
+<img width="863" height="296" alt="image" src="https://github.com/user-attachments/assets/85a6479b-71fa-4b8b-b94f-b097b88ba2cc" />
+
 2. Navigate to:
+   * **Settings → Workspace admin → Identity and Access → Service Principals**
+4. Create a new service principal
+<img width="1025" height="683" alt="image" src="https://github.com/user-attachments/assets/bbb10570-049f-4c37-9d58-226414b6fe95" />
+<img width="1098" height="680" alt="image" src="https://github.com/user-attachments/assets/6148bdb8-8785-49df-ad73-fc2bfbf484bf" />
 
-   * **Settings → Identity and Access → Service Principals**
-3. Create a new service principal
 
-Capture:
+5. Create an OAuth "Secret" Private Key
+<img width="986" height="573" alt="image" src="https://github.com/user-attachments/assets/4b0a6019-48a5-47e8-b583-73a0a859371a" />
+<img width="1061" height="609" alt="image" src="https://github.com/user-attachments/assets/9908e121-2d41-40dd-9c75-5e10397259d6" />
 
-* Application (client) ID
-* Client secret
+
+Capture/Record:
+
+* "Application Id"/"Client Id"
+* "Secret"
 
 ---
 
@@ -29,20 +38,24 @@ Capture:
 
 Your service principal needs:
 
-* Access to the workspace
 * Permission to read the dashboard
-* Permission to generate tokens (all-apis scope)
+Share the dashboard with your service account
+<img width="884" height="559" alt="image" src="https://github.com/user-attachments/assets/cbb4dd0e-e2a7-41a8-b29b-9b95cf3870fb" />
 
 At minimum:
-
-* Add it to the workspace
 * Grant access to the dashboard you want to publish
+
+Publish the dashboard
+* copy the embedded code, from the share panel 
+<img width="868" height="531" alt="image" src="https://github.com/user-attachments/assets/af234f9a-ccc6-4442-b7df-947476ba5c65" />
 
 ---
 
 ## 3. Get Dashboard Details
 
-From your Databricks dashboard:
+From your Databricks shared dashboard, copy the values :
+<img width="873" height="493" alt="image" src="https://github.com/user-attachments/assets/5bc30d90-150f-462c-94f8-803564f45a47" />
+
 
 * DASHBOARD_ID → from the URL
 * WORKSPACE_ID → from workspace settings or URL
