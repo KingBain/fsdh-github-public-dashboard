@@ -96,8 +96,8 @@ jobs:
           )"
 
           echo "::add-mask::$scoped_token"
-
-          echo "token=$scoped_token" >> "$GITHUB_OUTPUT"
+          encoded_token="$(printf '%s' "$scoped_token" | base64 -w 0)"
+          echo "token=$encoded_token" >> "$GITHUB_OUTPUT"
 
   build-site:
     runs-on: ubuntu-latest
@@ -112,12 +112,14 @@ jobs:
       - name: Inject token into HTML
         shell: bash
         env:
-          TOKEN: ${{ needs.generate-token.outputs.databricks_scoped_token }}
+          ENCODED_TOKEN: ${{ needs.generate-token.outputs.databricks_scoped_token }}
           INSTANCE_URL: ${{ vars.DATABRICKS_INSTANCE_URL }}
           WORKSPACE_ID: ${{ vars.DATABRICKS_WORKSPACE_ID }}
           DASHBOARD_ID: ${{ vars.DATABRICKS_DASHBOARD_ID }}
         run: |
           set -euo pipefail
+
+          TOKEN="$(printf '%s' "$ENCODED_TOKEN" | base64 -d)"
 
           echo "::add-mask::$TOKEN"
 
