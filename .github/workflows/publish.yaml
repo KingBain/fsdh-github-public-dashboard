@@ -115,11 +115,11 @@ jobs:
 
           printf '%s' "$scoped_token" > token.txt
 
-            - name: Upload token artifact
-              uses: actions/upload-artifact@v4
-              with:
-                name: databricks-token
-                path: token.txt
+      - name: Upload token artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: databricks-token
+          path: token.txt
 
   build-site:
     runs-on: ubuntu-latest
