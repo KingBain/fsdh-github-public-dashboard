@@ -36,18 +36,7 @@ jobs:
 
           INSTANCE_URL="${INSTANCE_URL%/}"
 
-          urlencode() {
-            jq -nr --arg v "$1" '$v|@uri'
-          }
-
-          encoded_client_id="$(urlencode "$SERVICE_PRINCIPAL_ID")"
-          encoded_client_secret="$(urlencode "$SERVICE_PRINCIPAL_SECRET")"
-
-          basic_auth="$(
-            printf '%s:%s' "$encoded_client_id" "$encoded_client_secret" \
-              | base64 \
-              | tr -d '\n'
-          )"
+          basic_auth="$(printf '%s:%s' "$SERVICE_PRINCIPAL_ID" "$SERVICE_PRINCIPAL_SECRET" | base64 | tr -d '\n')"
 
           echo "Requesting Databricks all-apis token..."
           oidc_response="$(
@@ -67,6 +56,7 @@ jobs:
             exit 1
           fi
 
+          echo "Requesting dashboard tokeninfo..."
           tokeninfo="$(
             curl -sS -G \
               "${INSTANCE_URL}/api/2.0/lakeview/dashboards/${DASHBOARD_ID}/published/tokeninfo" \
@@ -106,6 +96,7 @@ jobs:
               '
           )"
 
+          echo "Requesting scoped token..."
           scoped_response="$(
             curl -sS \
               -X POST "${INSTANCE_URL}/oidc/v1/token" \
