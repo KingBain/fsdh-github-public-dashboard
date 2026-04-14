@@ -8,7 +8,7 @@ To make this work, you need:
 2. A published Databricks dashboard
 3. GitHub repository environment, variables and secrets configured
 
-Demo Site
+## Demo Site
 <img width="1188" height="2187" alt="image" src="https://github.com/user-attachments/assets/cc3d2738-464c-402e-b7f6-a39fca3d281d" />
 
 ---
