@@ -18,6 +18,7 @@ Based on the official documentation and this GitHub Actions implementation, here
 ### Microsoft Documentation 
 *   https://learn.microsoft.com/en-us/azure/databricks/dashboards/share/embedding/external-embed
 *   https://learn.microsoft.com/en-us/azure/databricks/dev-tools/auth/oauth-m2m
+*   https://docs.databricks.com/aws/en/dev-tools/auth/service-principals
 
 ### Prerequisites
 To make this work, you need:
