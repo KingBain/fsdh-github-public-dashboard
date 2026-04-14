@@ -1,4 +1,5 @@
 # Databricks Dashboard Integration Proof of Concept
+<img src="demo.gif" width="600" alt="Project Demo">
 
 This project dynamically injects a short-lived Databricks OAuth token into a static HTML site during GitHub Actions deployment. This allows you to publish a Databricks dashboard to GitHub Pages for public consumption.
 
