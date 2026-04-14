@@ -36,7 +36,12 @@ jobs:
 
           INSTANCE_URL="${INSTANCE_URL%/}"
 
-          basic_auth="$(printf '%s:%s' "$SERVICE_PRINCIPAL_ID" "$SERVICE_PRINCIPAL_SECRET" | base64 | tr -d '\n')"
+          # URL-encode the ID and Secret per RFC 6749 section 2.3.1
+          encoded_id="$(jq -rn --arg val "$SERVICE_PRINCIPAL_ID" '$val | @uri')"
+          encoded_secret="$(jq -rn --arg val "$SERVICE_PRINCIPAL_SECRET" '$val | @uri')"
+
+          # Combine and base64 encode (-w 0 prevents line wrapping)
+          basic_auth="$(printf '%s:%s' "$encoded_id" "$encoded_secret" | base64 -w 0)"
 
           echo "Requesting Databricks all-apis token..."
           oidc_response="$(
