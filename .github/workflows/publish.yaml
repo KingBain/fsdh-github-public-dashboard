@@ -21,15 +21,20 @@ concurrency:
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        
 
       - name: Generate Databricks scoped access token
         id: databricks_token
@@ -46,9 +51,6 @@ jobs:
           set -euo pipefail
 
           INSTANCE_URL="${INSTANCE_URL%/}"
-
-          tmp_dir="$(mktemp -d)"
-          trap 'rm -rf "$tmp_dir"' EXIT
 
           basic_auth="$(printf '%s:%s' "$SERVICE_PRINCIPAL_ID" "$SERVICE_PRINCIPAL_SECRET" | base64 | tr -d '\n')"
 
@@ -71,7 +73,6 @@ jobs:
           fi
 
           echo "::add-mask::$oidc_token"
-          echo "All-apis token acquired."
 
           echo "Requesting dashboard tokeninfo..."
           tokeninfo_response="$(
@@ -84,15 +85,8 @@ jobs:
 
           authorization_details="$(echo "$tokeninfo_response" | jq -c '.authorization_details')"
 
-          if [ -z "$authorization_details" ] || [ "$authorization_details" = "null" ]; then
-            echo "Failed to get tokeninfo authorization_details"
-            echo "$tokeninfo_response"
-            exit 1
-          fi
-
           params_json="$(echo "$tokeninfo_response" | jq -c 'del(.authorization_details) | with_entries(select(.value != null))')"
 
-          # Safely encode arrays by repeating the key (e.g. resource=1&resource=2)
           form_body="$(
             jq -rn \
               --argjson params "$params_json" \
@@ -114,33 +108,18 @@ jobs:
               '
           )"
 
-          scoped_headers="$tmp_dir/scoped_headers.txt"
-          scoped_body="$tmp_dir/scoped_body.txt"
-
-          echo "Requesting Databricks scoped token..."
-          scoped_http_code="$(
+          scoped_response="$(
             curl -sS \
-              -D "$scoped_headers" \
-              -o "$scoped_body" \
-              -w "%{http_code}" \
               -X POST "${INSTANCE_URL}/oidc/v1/token" \
               -H "Authorization: Basic ${basic_auth}" \
               -H "Content-Type: application/x-www-form-urlencoded" \
-              --data "$form_body" \
-              || true
+              --data "$form_body"
           )"
 
-          if [ "$scoped_http_code" != "200" ]; then
-            echo "Scoped token request failed with HTTP $scoped_http_code."
-            cat "$scoped_body"
-            exit 1
-          fi
-
-          scoped_response="$(cat "$scoped_body")"
           scoped_token="$(echo "$scoped_response" | jq -r '.access_token')"
 
           if [ -z "$scoped_token" ] || [ "$scoped_token" = "null" ]; then
-            echo "Scoped token response did not contain access_token"
+            echo "Failed to get scoped token"
             echo "$scoped_response"
             exit 1
           fi
@@ -154,28 +133,20 @@ jobs:
             echo "DATABRICKS_DASHBOARD_ID=$DASHBOARD_ID"
           } >> "$GITHUB_ENV"
 
-          echo "Scoped token generated successfully."
-
-      - name: Inject Databricks token into static page
-        shell: bash
+      - name: Inject token into HTML
         run: |
           set -euo pipefail
 
-          escape_replacement() {
-            printf '%s' "$1" | sed -e 's/[\/&]/\\&/g'
-          }
+          escape() { printf '%s' "$1" | sed 's/[\/&]/\\&/g'; }
 
-          instance_url_escaped="$(escape_replacement "$DATABRICKS_INSTANCE_URL")"
-          workspace_id_escaped="$(escape_replacement "$DATABRICKS_WORKSPACE_ID")"
-          dashboard_id_escaped="$(escape_replacement "$DATABRICKS_DASHBOARD_ID")"
-          token_escaped="$(escape_replacement "$DATABRICKS_SCOPED_TOKEN")"
-
-          sed -i \
-            -e "s/__DATABRICKS_INSTANCE_URL__/${instance_url_escaped}/g" \
-            -e "s/__DATABRICKS_WORKSPACE_ID__/${workspace_id_escaped}/g" \
-            -e "s/__DATABRICKS_DASHBOARD_ID__/${dashboard_id_escaped}/g" \
-            -e "s/__DATABRICKS_TOKEN__/${token_escaped}/g" \
+          sed -i.bak \
+            -e "s/__DATABRICKS_INSTANCE_URL__/$(escape "$DATABRICKS_INSTANCE_URL")/g" \
+            -e "s/__DATABRICKS_WORKSPACE_ID__/$(escape "$DATABRICKS_WORKSPACE_ID")/g" \
+            -e "s/__DATABRICKS_DASHBOARD_ID__/$(escape "$DATABRICKS_DASHBOARD_ID")/g" \
+            -e "s/__DATABRICKS_TOKEN__/$(escape "$DATABRICKS_SCOPED_TOKEN")/g" \
             index.html
+
+          rm -f index.html.bak
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
@@ -185,6 +156,6 @@ jobs:
         with:
           path: "."
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v5
