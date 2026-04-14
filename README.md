@@ -4,6 +4,7 @@ This project dynamically injects a short-lived Databricks OAuth token into a sta
 
 ### Important Considerations
 https://learn.microsoft.com/en-us/azure/databricks/dashboards/share/embedding/external-embed
+
 Based on the official documentation and this GitHub Actions implementation, here are the critical bullets a user should be aware of when using this Proof of Concept:
 
 *   **Compute Costs & Billing Ownership**: Although hosting on GitHub Pages is free, the dashboard itself is **not**. Every time a user views the dashboard, it executes queries on your **Databricks SQL Warehouse**. The organization that owns the Databricks workspace is responsible for the DBU (Databricks Unit) costs associated with those queries, regardless of who is viewing the GitHub site.
