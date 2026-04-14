@@ -44,7 +44,7 @@ Your service principal needs:
 
 * Permission to read the dashboard
 Share the dashboard with your service account
-<img width="856" height="76" alt="image" src="https://github.com/user-attachments/assets/8fb7b0cb-b499-4965-8fec-ce285da90bda" />
+<img width="879" height="545" alt="image" src="https://github.com/user-attachments/assets/b9aa9fea-a495-4df7-8d8a-7a20a04221f4" />
 
 The service account will need "Can Run" permission
 
@@ -54,7 +54,7 @@ At minimum:
 
 Publish the dashboard
 * copy the embedded code, from the share panel 
-<img width="868" height="528" alt="image" src="https://github.com/user-attachments/assets/4555c59f-b0fb-4001-b489-32cbca68f5b5" />
+<img width="848" height="154" alt="image" src="https://github.com/user-attachments/assets/27a8d2dc-3e06-49a9-aab9-6d4756568d55" />
 
 
 ---
@@ -67,11 +67,8 @@ From your Databricks shared dashboard, copy the values :
 
 * DASHBOARD_ID → from the URL
 * WORKSPACE_ID → from workspace settings or URL
-* INSTANCE_URL → e.g.
+* INSTANCE_URL ...etc
 
-```
-https://adb-xxxxxxxx.x.azuredatabricks.net
-```
 
 ---
 
@@ -100,7 +97,7 @@ Create the following secretes:
 <img width="789" height="1156" alt="image" src="https://github.com/user-attachments/assets/4ed78441-b899-4c7b-ac37-6cd3bdde6f8a" />
 
 
-## 4. Configure GitHub Actrion Variables
+## 4. Configure GitHub Action Variables
 
 Create the following variables 
 
@@ -113,8 +110,6 @@ Create the following variables
 | DATABRICKS_EXTERNAL_VALUE       | public-viewer              |
 
 <img width="805" height="761" alt="image" src="https://github.com/user-attachments/assets/e1f54aa4-96df-4965-a94f-b26eb4a7187c" />
-
-
 
 ---
 
@@ -138,150 +133,3 @@ Create the following variables
 
   * Short-lived (≤1 hour)
   * Scoped to read-only dashboard access
-
----
-
-# GitHub Actions Workflow (Environment-Based)
-
-```yaml
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Generate Databricks scoped access token
-        id: databricks_token
-        shell: bash
-        env:
-          INSTANCE_URL: ${{ vars.DATABRICKS_INSTANCE_URL }}
-          WORKSPACE_ID: ${{ vars.DATABRICKS_WORKSPACE_ID }}
-          DASHBOARD_ID: ${{ vars.DATABRICKS_DASHBOARD_ID }}
-          SERVICE_PRINCIPAL_ID: ${{ vars.DATABRICKS_SERVICE_PRINCIPAL_ID }}
-          SERVICE_PRINCIPAL_SECRET: ${{ secrets.DATABRICKS_SERVICE_PRINCIPAL_SECRET }}
-          EXTERNAL_VIEWER_ID: ${{ vars.DATABRICKS_EXTERNAL_VIEWER_ID }}
-          EXTERNAL_VALUE: ${{ vars.DATABRICKS_EXTERNAL_VALUE }}
-        run: |
-          set -euo pipefail
-
-          INSTANCE_URL="${INSTANCE_URL%/}"
-
-          basic_auth="$(printf '%s:%s' "$SERVICE_PRINCIPAL_ID" "$SERVICE_PRINCIPAL_SECRET" | base64 | tr -d '\n')"
-
-          echo "Requesting Databricks all-apis token..."
-          oidc_response="$(
-            curl -sS \
-              -X POST "${INSTANCE_URL}/oidc/v1/token" \
-              -H "Authorization: Basic ${basic_auth}" \
-              -H "Content-Type: application/x-www-form-urlencoded" \
-              --data-urlencode "grant_type=client_credentials" \
-              --data-urlencode "scope=all-apis"
-          )"
-
-          oidc_token="$(echo "$oidc_response" | jq -r '.access_token')"
-
-          if [ -z "$oidc_token" ] || [ "$oidc_token" = "null" ]; then
-            echo "Failed to get Databricks all-apis token"
-            echo "$oidc_response"
-            exit 1
-          fi
-
-          echo "::add-mask::$oidc_token"
-
-          echo "Requesting dashboard tokeninfo..."
-          tokeninfo_response="$(
-            curl -sS -G \
-              "${INSTANCE_URL}/api/2.0/lakeview/dashboards/${DASHBOARD_ID}/published/tokeninfo" \
-              -H "Authorization: Bearer ${oidc_token}" \
-              --data-urlencode "external_viewer_id=${EXTERNAL_VIEWER_ID}" \
-              --data-urlencode "external_value=${EXTERNAL_VALUE}"
-          )"
-
-          authorization_details="$(echo "$tokeninfo_response" | jq -c '.authorization_details')"
-
-          params_json="$(echo "$tokeninfo_response" | jq -c 'del(.authorization_details) | with_entries(select(.value != null))')"
-
-          form_body="$(
-            jq -rn \
-              --argjson params "$params_json" \
-              --arg authorization_details "$authorization_details" '
-                ($params + {
-                  grant_type: "client_credentials",
-                  authorization_details: $authorization_details
-                })
-                | to_entries
-                | map(
-                    .key as $k
-                    | if (.value | type) == "array" then
-                        (.value | map("\($k|@uri)=\(.|tostring|@uri)") | join("&"))
-                      else
-                        "\($k|@uri)=\(.value|tostring|@uri)"
-                      end
-                  )
-                | join("&")
-              '
-          )"
-
-          scoped_response="$(
-            curl -sS \
-              -X POST "${INSTANCE_URL}/oidc/v1/token" \
-              -H "Authorization: Basic ${basic_auth}" \
-              -H "Content-Type: application/x-www-form-urlencoded" \
-              --data "$form_body"
-          )"
-
-          scoped_token="$(echo "$scoped_response" | jq -r '.access_token')"
-
-          if [ -z "$scoped_token" ] || [ "$scoped_token" = "null" ]; then
-            echo "Failed to get scoped token"
-            echo "$scoped_response"
-            exit 1
-          fi
-
-          echo "::add-mask::$scoped_token"
-
-          {
-            echo "DATABRICKS_SCOPED_TOKEN=$scoped_token"
-            echo "DATABRICKS_INSTANCE_URL=$INSTANCE_URL"
-            echo "DATABRICKS_WORKSPACE_ID=$WORKSPACE_ID"
-            echo "DATABRICKS_DASHBOARD_ID=$DASHBOARD_ID"
-          } >> "$GITHUB_ENV"
-
-      - name: Inject token into HTML
-        run: |
-          set -euo pipefail
-
-          escape() { printf '%s' "$1" | sed 's/[\/&]/\\&/g'; }
-
-          sed -i.bak \
-            -e "s/__DATABRICKS_INSTANCE_URL__/$(escape "$DATABRICKS_INSTANCE_URL")/g" \
-            -e "s/__DATABRICKS_WORKSPACE_ID__/$(escape "$DATABRICKS_WORKSPACE_ID")/g" \
-            -e "s/__DATABRICKS_DASHBOARD_ID__/$(escape "$DATABRICKS_DASHBOARD_ID")/g" \
-            -e "s/__DATABRICKS_TOKEN__/$(escape "$DATABRICKS_SCOPED_TOKEN")/g" \
-            index.html
-
-          rm -f index.html.bak
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v6
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: "."
-
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v5
-```
