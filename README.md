@@ -2,6 +2,16 @@
 
 This project dynamically injects a short-lived Databricks OAuth token into a static HTML site during GitHub Actions deployment. This allows you to publish a Databricks dashboard to GitHub Pages for public consumption.
 
+### Important Considerations
+https://learn.microsoft.com/en-us/azure/databricks/dashboards/share/embedding/external-embed
+Based on the official documentation and this GitHub Actions implementation, here are the critical bullets a user should be aware of when using this Proof of Concept:
+
+*   **Compute Costs & Billing Ownership**: Although hosting on GitHub Pages is free, the dashboard itself is **not**. Every time a user views the dashboard, it executes queries on your **Databricks SQL Warehouse**. The organization that owns the Databricks workspace is responsible for the DBU (Databricks Unit) costs associated with those queries, regardless of who is viewing the GitHub site.
+*   **Token Expiration & Static Limits**: Because GitHub Pages is a static host, the Databricks token is semi "frozen" into the HTML at the time of deployment. Since these user-scoped tokens are designed to be short-lived (typically 1 hour), the dashboard will stop working if a user leaves the page open for too long. This project relies on the **GitHub Action Schedule** to "refresh" the page with a fresh token twice an hour.
+*   **Compute vs. Data Permissions**: This model uses a split-permission logic. The **Compute** (the SQL Warehouse) always runs using the credentials of the person who **published** the dashboard. However, the **Data Access** (the tables) is checked against the **Service Principal**. You must ensure your Service Principal has  privileges on the underlying dashboard or the charts will return an "Access Denied" error.
+*   **Compute Source & Auto-Stop**: All data processing happens on **Databricks SQL Warehouses**, not on the end-user's computer or GitHub's servers. The user's browser only receives the final visual results. To avoid unexpected costs when no one is visiting your site, ensure your SQL Warehouse is configured to **"Auto-Stop"** after a period of inactivity.
+*   **Concurrency & Rate Limits**: Databricks imposes a hard limit of **20 simultaneous dashboard loads per second** for external embedding. While this is sufficient for most use cases, if the site receives a massive spike in traffic, users may see "Rate Limit Exceeded" errors because the single Service Principal identity is being used to handle all requests.
+
 ### Prerequisites
 To make this work, you need:
 1. A Databricks Service Principal.
