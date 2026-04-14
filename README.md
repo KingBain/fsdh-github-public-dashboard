@@ -18,8 +18,9 @@ To make this work, you need:
 2. Navigate to:
    * **Settings → Workspace admin → Identity and Access → Service Principals**
 4. Create a new service principal
-<img width="1025" height="683" alt="image" src="https://github.com/user-attachments/assets/bbb10570-049f-4c37-9d58-226414b6fe95" />
-<img width="1098" height="680" alt="image" src="https://github.com/user-attachments/assets/6148bdb8-8785-49df-ad73-fc2bfbf484bf" />
+<img width="1018" height="687" alt="image" src="https://github.com/user-attachments/assets/9972174e-ce59-434a-9f8f-922a9efeb556" />
+Select none of the "entitlements"
+
 
 
 5. Create an OAuth "Secret" Private Key
