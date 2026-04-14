@@ -38,16 +38,25 @@ jobs:
 
           basic_auth="$(printf '%s:%s' "$SERVICE_PRINCIPAL_ID" "$SERVICE_PRINCIPAL_SECRET" | base64 | tr -d '\n')"
 
-          oidc_token="$(
+          echo "Requesting Databricks all-apis token..."
+          oidc_response="$(
             curl -sS \
               -X POST "${INSTANCE_URL}/oidc/v1/token" \
               -H "Authorization: Basic ${basic_auth}" \
               -H "Content-Type: application/x-www-form-urlencoded" \
               --data-urlencode "grant_type=client_credentials" \
-              --data-urlencode "scope=all-apis" \
-            | jq -r '.access_token'
+              --data-urlencode "scope=all-apis"
           )"
 
+          oidc_token="$(echo "$oidc_response" | jq -r '.access_token')"
+
+          if [ -z "$oidc_token" ] || [ "$oidc_token" = "null" ]; then
+            echo "Failed to get Databricks all-apis token"
+            echo "$oidc_response"
+            exit 1
+          fi
+
+          echo "Requesting dashboard tokeninfo..."
           tokeninfo="$(
             curl -sS -G \
               "${INSTANCE_URL}/api/2.0/lakeview/dashboards/${DASHBOARD_ID}/published/tokeninfo" \
@@ -57,6 +66,13 @@ jobs:
           )"
 
           authorization_details="$(echo "$tokeninfo" | jq -c '.authorization_details')"
+
+          if [ -z "$authorization_details" ] || [ "$authorization_details" = "null" ]; then
+            echo "Failed to get tokeninfo authorization_details"
+            echo "$tokeninfo"
+            exit 1
+          fi
+
           params_json="$(echo "$tokeninfo" | jq -c 'del(.authorization_details) | with_entries(select(.value != null))')"
 
           form_body="$(
@@ -80,23 +96,30 @@ jobs:
               '
           )"
 
-          scoped_token="$(
+          echo "Requesting scoped token..."
+          scoped_response="$(
             curl -sS \
               -X POST "${INSTANCE_URL}/oidc/v1/token" \
               -H "Authorization: Basic ${basic_auth}" \
               -H "Content-Type: application/x-www-form-urlencoded" \
-              --data "$form_body" \
-            | jq -r '.access_token'
+              --data "$form_body"
           )"
 
-          # write token to file (this is the key change)
-          echo "$scoped_token" > token.txt
+          scoped_token="$(echo "$scoped_response" | jq -r '.access_token')"
 
-      - name: Upload token artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: databricks-token
-          path: token.txt
+          if [ -z "$scoped_token" ] || [ "$scoped_token" = "null" ]; then
+            echo "Failed to get scoped token"
+            echo "$scoped_response"
+            exit 1
+          fi
+
+          printf '%s' "$scoped_token" > token.txt
+
+            - name: Upload token artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: databricks-token
+                path: token.txt
 
   build-site:
     runs-on: ubuntu-latest
