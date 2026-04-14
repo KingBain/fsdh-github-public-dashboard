@@ -67,13 +67,14 @@ https://adb-xxxxxxxx.x.azuredatabricks.net
 
 ---
 
-## 4. Configure GitHub Variables
+## 4. Configure GitHub Environment Variables
 
 Go to:
 
-Repo → Settings → Variables → Actions
+Repo → Settings → Environments
 
-Create:
+Create an environment called "github-pages"(if it doesnt already exist:
+Create the following values 
 
 | Name                            | Value               |
 | ------------------------------- | ------------------- |
@@ -84,43 +85,19 @@ Create:
 | DATABRICKS_EXTERNAL_VIEWER_ID   | public-user         |
 | DATABRICKS_EXTERNAL_VALUE       | viewer              |
 
----
 
-## 5. Configure GitHub Secrets
-
-Go to:
-
-Repo → Settings → Secrets → Actions
-
-Create:
+Create the following secretes:
 
 | Name                                | Value         |
 | ----------------------------------- | ------------- |
 | DATABRICKS_SERVICE_PRINCIPAL_SECRET | client secret |
 
----
 
-## 6. Configure GitHub Environment (Recommended)
+<img width="458" height="806" alt="image" src="https://github.com/user-attachments/assets/8461c2f9-7107-48e5-aa28-edea3f893c8f" />
 
-1. Go to:
-
-   * Settings → Environments
-2. Create:
-
-```
-github-pages
-```
-
-3. Add:
-
-* Variables
-* Secrets
-
-4. Optional:
-
-* Add required reviewers for deployment approval
 
 ---
+
 
 ## 7. How It Works
 
