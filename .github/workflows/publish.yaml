@@ -1,3 +1,4 @@
+---
 name: Deploy static content to Pages
 
 on:
@@ -5,7 +6,7 @@ on:
     branches: ["main"]
   workflow_dispatch:
   schedule:
-    # Rebuild twice per hour to prevent token expiration gaps (tokens expire in 1hr)
+    # Rebuild twice per hour to prevent token expiration gaps 
     - cron: "15 * * * *"
     - cron: "45 * * * *"
 
@@ -160,25 +161,21 @@ jobs:
         run: |
           set -euo pipefail
 
-          python3 <<'PY'
-          from pathlib import Path
-          import os
-
-          index_path = Path("index.html")
-          html = index_path.read_text(encoding="utf-8")
-
-          replacements = {
-              "__DATABRICKS_INSTANCE_URL__": os.environ["DATABRICKS_INSTANCE_URL"],
-              "__DATABRICKS_WORKSPACE_ID__": os.environ["DATABRICKS_WORKSPACE_ID"],
-              "__DATABRICKS_DASHBOARD_ID__": os.environ["DATABRICKS_DASHBOARD_ID"],
-              "__DATABRICKS_TOKEN__": os.environ["DATABRICKS_SCOPED_TOKEN"],
+          escape_replacement() {
+            printf '%s' "$1" | sed -e 's/[\/&]/\\&/g'
           }
 
-          for old, new in replacements.items():
-              html = html.replace(old, new)
+          instance_url_escaped="$(escape_replacement "$DATABRICKS_INSTANCE_URL")"
+          workspace_id_escaped="$(escape_replacement "$DATABRICKS_WORKSPACE_ID")"
+          dashboard_id_escaped="$(escape_replacement "$DATABRICKS_DASHBOARD_ID")"
+          token_escaped="$(escape_replacement "$DATABRICKS_SCOPED_TOKEN")"
 
-          index_path.write_text(html, encoding="utf-8")
-          PY
+          sed -i \
+            -e "s/__DATABRICKS_INSTANCE_URL__/${instance_url_escaped}/g" \
+            -e "s/__DATABRICKS_WORKSPACE_ID__/${workspace_id_escaped}/g" \
+            -e "s/__DATABRICKS_DASHBOARD_ID__/${dashboard_id_escaped}/g" \
+            -e "s/__DATABRICKS_TOKEN__/${token_escaped}/g" \
+            index.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
