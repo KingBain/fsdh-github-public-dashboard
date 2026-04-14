@@ -1,0 +1,173 @@
+<!doctype html>
+<html dir="ltr" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Artemis II mission overview generated from Databricks using the GC Design System."
+    />
+    <title>Public Databricks Dashboard</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.design-system.canada.ca/@gcds-core/css-shortcuts@1.0.1/dist/gcds-css-shortcuts.min.css"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.design-system.canada.ca/@gcds-core/components@1.0.0/dist/gcds/gcds.css"
+    />
+    <script
+      type="module"
+      src="https://cdn.design-system.canada.ca/@gcds-core/components@1.0.0/dist/gcds/gcds.esm.js"
+    ></script>
+
+    <style>
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .metric-card {
+        border: 1px solid #d7dbe0;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        background: #fff;
+      }
+
+      .metric-label {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        color: #333;
+      }
+
+      .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .chart-block {
+        margin-top: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .chart-img {
+        width: 100%;
+        height: auto;
+        border: 1px solid #d7dbe0;
+        border-radius: 0.375rem;
+        background: #fff;
+      }
+
+      .meta-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+
+      .meta-table th,
+      .meta-table td {
+        text-align: left;
+        padding: 0.75rem;
+        border-bottom: 1px solid #d7dbe0;
+        vertical-align: top;
+      }
+
+      .meta-table th {
+        width: 30%;
+      }
+
+      .site-generated-footer {
+        border-top: 1px solid #d7dbe0;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        color: #333;
+      }
+      #dashboard-content {
+        width: 100%;
+        /* Adjust this value based on how much screen space you want the chart to take */
+        height: 800px; 
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid #d7dbe0;
+        border-radius: 0.375rem;
+        background: #fff;
+      }
+
+      /* This targets the iframe/component created by the SDK and forces it to fill the div */
+      #dashboard-content > * {
+        flex: 1;
+        width: 100% !important;
+        height: 100% !important;
+        border: none !important;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <gcds-header lang-href="#fr" skip-to-href="#main-content">
+      <gcds-breadcrumbs slot="breadcrumb">
+        <gcds-breadcrumbs-item href="/">Home</gcds-breadcrumbs-item>
+        <gcds-breadcrumbs-item href="#">Databricks Demo</gcds-breadcrumbs-item>
+      </gcds-breadcrumbs>
+    </gcds-header>
+
+    <gcds-container id="main-content" layout="page" tag="main">
+      <section class="mt-400 mb-600">
+        <gcds-heading tag="h1">Databricks Demo</gcds-heading>
+        <gcds-text>
+          This page was generated from Databricks using a prototype FSDH pipeline.
+        </gcds-text>
+      </section>
+
+
+
+      <section class="mb-600">
+        <gcds-heading tag="h2">Embedded Iframe</gcds-heading>
+
+        <div class="chart-block" id="dashboard-content"></div>
+
+        <script type="module">
+          import { DatabricksDashboard } from "https://cdn.jsdelivr.net/npm/@databricks/aibi-client@0.0.0-alpha.7/+esm";
+        
+          const dashboard = new DatabricksDashboard({
+            instanceUrl: "__DATABRICKS_INSTANCE_URL__",
+            workspaceId: "__DATABRICKS_WORKSPACE_ID__",
+            dashboardId: "__DATABRICKS_DASHBOARD_ID__",
+            token: "__DATABRICKS_TOKEN__",
+            container: document.getElementById("dashboard-content")
+          });
+        
+          dashboard.initialize();
+        </script>
+
+      </section>
+
+      <section class="mb-600">
+        <gcds-heading tag="h2">About this demo</gcds-heading>
+        <gcds-text>
+          This prototype shows how Databricks can be used in FSDH to publish static outputs for the web.
+        </gcds-text>
+      </section>
+
+      <gcds-date-modified>2026-04-13</gcds-date-modified>
+    </gcds-container>
+
+    <div class="site-generated-footer">
+      <gcds-container layout="page">
+        <gcds-text>
+          Site generated: 2026-04-13 12:47:41 UTC
+        </gcds-text>
+      </gcds-container>
+    </div>
+
+    <gcds-footer display="full"></gcds-footer>
+  </body>
+</html>
