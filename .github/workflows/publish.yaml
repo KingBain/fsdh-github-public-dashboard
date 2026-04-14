@@ -31,7 +31,6 @@ jobs:
           SERVICE_PRINCIPAL_ID: ${{ vars.DATABRICKS_SERVICE_PRINCIPAL_ID }}
           SERVICE_PRINCIPAL_SECRET: ${{ secrets.DATABRICKS_SERVICE_PRINCIPAL_SECRET }}
           EXTERNAL_VIEWER_ID: ${{ vars.DATABRICKS_EXTERNAL_VIEWER_ID }}
-          EXTERNAL_VALUE: ${{ vars.DATABRICKS_EXTERNAL_VALUE }}
         run: |
           set -euo pipefail
 
@@ -60,8 +59,7 @@ jobs:
             curl -sS -G \
               "${INSTANCE_URL}/api/2.0/lakeview/dashboards/${DASHBOARD_ID}/published/tokeninfo" \
               -H "Authorization: Bearer ${oidc_token}" \
-              --data-urlencode "external_viewer_id=${EXTERNAL_VIEWER_ID}" \
-              --data-urlencode "external_value=${EXTERNAL_VALUE}"
+              --data-urlencode "external_viewer_id=${EXTERNAL_VIEWER_ID}"
           )"
 
           authorization_details="$(echo "$tokeninfo" | jq -c '.authorization_details')"
