@@ -40,14 +40,18 @@ Your service principal needs:
 
 * Permission to read the dashboard
 Share the dashboard with your service account
-<img width="884" height="559" alt="image" src="https://github.com/user-attachments/assets/cbb4dd0e-e2a7-41a8-b29b-9b95cf3870fb" />
+<img width="856" height="76" alt="image" src="https://github.com/user-attachments/assets/8fb7b0cb-b499-4965-8fec-ce285da90bda" />
+
+The service account will need "Can Run" permission
+
 
 At minimum:
 * Grant access to the dashboard you want to publish
 
 Publish the dashboard
 * copy the embedded code, from the share panel 
-<img width="868" height="531" alt="image" src="https://github.com/user-attachments/assets/af234f9a-ccc6-4442-b7df-947476ba5c65" />
+<img width="868" height="528" alt="image" src="https://github.com/user-attachments/assets/4555c59f-b0fb-4001-b489-32cbca68f5b5" />
+
 
 ---
 
