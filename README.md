@@ -1,135 +1,139 @@
-# Databricks Dashboard Integration Setup
+# Databricks Dashboard Integration Proof of Concept
 
-This project dynamically injects a short-lived Databricks token into a static site during the GitHub Actions deployment.
+This project dynamically injects a short-lived Databricks OAuth token into a static HTML site during GitHub Actions deployment. This allows you to publish a Databricks dashboard to GitHub Pages for public consumption.
 
+### Prerequisites
 To make this work, you need:
+1. A Databricks Service Principal.
+2. A published Databricks dashboard.
+3. A GitHub repository with Environments, Variables, and Secrets configured.
 
-1. A Databricks Service Principal
-2. A published Databricks dashboard
-3. GitHub repository environment, variables and secrets configured
+---
 
 ## Demo Site
-<img width="1188" height="2187" alt="image" src="https://github.com/user-attachments/assets/cc3d2738-464c-402e-b7f6-a39fca3d281d" />
+<details>
+<summary><b>Click to view Demo Site Screenshot</b></summary>
+<br>
+<img width="1188" alt="Demo Site" src="https://github.com/user-attachments/assets/cc3d2738-464c-402e-b7f6-a39fca3d281d" />
+</details>
 
 ---
 
-## 1. Create a Databricks Service Principal
+## Step 1: Create a Databricks Service Principal
 
-1. Go to your Databricks workspace
-<img width="863" height="296" alt="image" src="https://github.com/user-attachments/assets/85a6479b-71fa-4b8b-b94f-b097b88ba2cc" />
+1. Go to your Databricks workspace.
+2. Navigate to **Settings → Workspace admin → Identity and Access → Service Principals**.
+3. Create a new service principal. Ensure you select **none** of the entitlements.
+4. Generate an OAuth "Secret" Private Key.
 
-2. Navigate to:
-   * **Settings → Workspace admin → Identity and Access → Service Principals**
-4. Create a new service principal
-<img width="1018" height="687" alt="image" src="https://github.com/user-attachments/assets/9972174e-ce59-434a-9f8f-922a9efeb556" />
-Select none of the "entitlements"
+<details>
+<summary><b>Click to view walkthrough screenshots</b></summary>
+<br>
+<img width="863" alt="Workspace Menu" src="https://github.com/user-attachments/assets/85a6479b-71fa-4b8b-b94f-b097b88ba2cc" />
+<img width="1018" alt="Create Service Principal" src="https://github.com/user-attachments/assets/9972174e-ce59-434a-9f8f-922a9efeb556" />
+<img width="986" alt="OAuth Secret 1" src="https://github.com/user-attachments/assets/4b0a6019-48a5-47e8-b583-73a0a859371a" />
+<img width="1061" alt="OAuth Secret 2" src="https://github.com/user-attachments/assets/9908e121-2d41-40dd-9c75-5e10397259d6" />
+</details>
 
-
-
-5. Create an OAuth "Secret" Private Key
-<img width="986" height="573" alt="image" src="https://github.com/user-attachments/assets/4b0a6019-48a5-47e8-b583-73a0a859371a" />
-<img width="1061" height="609" alt="image" src="https://github.com/user-attachments/assets/9908e121-2d41-40dd-9c75-5e10397259d6" />
-
-
-Capture/Record:
-
-* "Application Id"/"Client Id"
-* "Secret"
+**⚠️ Important:** Securely capture and save the following values:
+* `Application Id` (Client ID)
+* `Secret`
 
 ---
 
-## 2. Grant Required Permissions
+## Step 2: Grant Required Permissions
 
-Your service principal needs:
+Your newly created service principal needs permission to read the dashboard. 
 
-* Permission to read the dashboard
-Share the dashboard with your service account
-<img width="879" height="545" alt="image" src="https://github.com/user-attachments/assets/b9aa9fea-a495-4df7-8d8a-7a20a04221f4" />
+1. Navigate to the Databricks dashboard you want to publish.
+2. Open the **Share** panel.
+3. Grant your service principal **Can Run** permissions.
+4. **Publish** the dashboard.
+5. Copy the embedded code from the share panel for the next step.
 
-The service account will need "Can Run" permission
-
-
-At minimum:
-* Grant access to the dashboard you want to publish
-
-Publish the dashboard
-* copy the embedded code, from the share panel 
-<img width="848" height="154" alt="image" src="https://github.com/user-attachments/assets/27a8d2dc-3e06-49a9-aab9-6d4756568d55" />
-
+<details>
+<summary><b>Click to view Sharing screenshots</b></summary>
+<br>
+<img width="879" alt="Share Dashboard" src="https://github.com/user-attachments/assets/b9aa9fea-a495-4df7-8d8a-7a20a04221f4" />
+<img width="848" alt="Embedded Code" src="https://github.com/user-attachments/assets/27a8d2dc-3e06-49a9-aab9-6d4756568d55" />
+</details>
 
 ---
 
-## 3. Get Dashboard Details
+## Step 3: Get Dashboard Details
 
-From your Databricks shared dashboard, copy the values :
-<img width="873" height="493" alt="image" src="https://github.com/user-attachments/assets/5bc30d90-150f-462c-94f8-803564f45a47" />
+From your Databricks shared dashboard URL and settings, locate and copy these values:
 
+* `DASHBOARD_ID` → Found in the dashboard URL.
+* `WORKSPACE_ID` → Found in workspace settings or the URL.
+* `INSTANCE_URL` → Your base Databricks URL (e.g., `https://adb-123456789.9.azuredatabricks.net`).
 
-* DASHBOARD_ID → from the URL
-* WORKSPACE_ID → from workspace settings or URL
-* INSTANCE_URL ...etc
-
-
----
-
-## 4. Configure GitHub Environment Variables
-
-Go to:
-
-Repo → Settings → Environments
-
-Create an environment called "databicks-service":
-Set the Deployment branch to 'main'
-
-Create the following values 
-
-| Name                            | Value               |
-| ------------------------------- | ------------------- |
-| DATABRICKS_SERVICE_PRINCIPAL_ID | client ID           |
-
-
-Create the following secretes:
-
-| Name                                | Value         |
-| ----------------------------------- | ------------- |
-| DATABRICKS_SERVICE_PRINCIPAL_SECRET | client secret |
-
-<img width="789" height="1156" alt="image" src="https://github.com/user-attachments/assets/4ed78441-b899-4c7b-ac37-6cd3bdde6f8a" />
-
-
-## 4. Configure GitHub Action Variables
-
-Create the following variables 
-
-| Name                            | Value               |
-| ------------------------------- | ------------------- |
-| DATABRICKS_INSTANCE_URL         | your Databricks URL |
-| DATABRICKS_WORKSPACE_ID         | workspace ID        |
-| DATABRICKS_DASHBOARD_ID         | dashboard ID        |
-| DATABRICKS_EXTERNAL_VIEWER_ID   | github-repo-name    |
-| DATABRICKS_EXTERNAL_VALUE       | public-viewer              |
-
-<img width="805" height="761" alt="image" src="https://github.com/user-attachments/assets/e1f54aa4-96df-4965-a94f-b26eb4a7187c" />
+<details>
+<summary><b>Click to view URL breakdown</b></summary>
+<br>
+<img width="873" alt="Dashboard Details" src="https://github.com/user-attachments/assets/5bc30d90-150f-462c-94f8-803564f45a47" />
+</details>
 
 ---
 
+## Step 4: Configure GitHub Environment Secrets
 
-## 7. How It Works
+1. In your GitHub repository, go to **Settings → Environments**.
+2. Create a new environment called `databricks-dashboard`.
+3. Set the **Deployment branch** rule to `main`.
+4. Add the following **Environment Variables / Secrets**:
 
-1. GitHub Actions authenticates with Databricks
-2. Retrieves an all-apis token
-3. Exchanges it for a scoped dashboard token
-4. Injects the token into index.html
-5. Deploys the site to GitHub Pages
-6. The browser loads the dashboard using that token
+### Environment Variable
+| Name | Value |
+|------|-------|
+| `DATABRICKS_SERVICE_PRINCIPAL_ID` | *Your Client ID* |
+
+### Environment Secret
+| Name | Value |
+|------|-------|
+| `DATABRICKS_SERVICE_PRINCIPAL_SECRET` | *Your Client Secret* |
+
+<details>
+<summary><b>Click to view Environment Setup</b></summary>
+<br>
+<img width="792" height="1167" alt="image" src="https://github.com/user-attachments/assets/e6f53f39-bb3a-4249-9782-5a19fa9631b1" />
+</details>
 
 ---
 
-## Security Notes
+## Step 5: Configure GitHub Repository Variables
 
-* The token is embedded in the final HTML
-* It is publicly accessible
-* It should be:
+Go to **Settings → Secrets and variables → Actions** and select the **Variables** tab. Create the following Repository Variables:
 
-  * Short-lived (≤1 hour)
-  * Scoped to read-only dashboard access
+| Name | Value |
+|------|-------|
+| `DATABRICKS_INSTANCE_URL` | *Your Databricks Instance URL* |
+| `DATABRICKS_WORKSPACE_ID` | *Your Workspace ID* |
+| `DATABRICKS_DASHBOARD_ID` | *Your Dashboard ID* |
+| `DATABRICKS_EXTERNAL_VIEWER_ID` | `github-repo-name` (or a custom identifier) |
+| `DATABRICKS_EXTERNAL_VALUE` | `public-viewer` |
+
+<details>
+<summary><b>Click to view Action Variables</b></summary>
+<br>
+<img width="796" height="736" alt="image" src="https://github.com/user-attachments/assets/fc48bcbf-b532-4a64-87ff-9bb5fdbd8ee0" />
+</details>
+
+---
+
+## ⚙️ How It Works
+
+1. **Authentication**: GitHub Actions securely authenticates with Databricks using basic auth (Base64 URL-encoded).
+2. **Token Fetching**: It retrieves a broad `all-apis` token.
+3. **Token Exchange**: It immediately exchanges that token for a strictly scoped dashboard viewer token using `tokeninfo`.
+4. **Injection**: A `sed` script finds placeholders in `index.html` and injects the scoped token.
+5. **Deployment**: The static site is deployed to GitHub Pages.
+6. **Viewing**: The user's browser automatically loads the Databricks dashboard using the injected token.
+
+---
+
+## 🔒 Security Notes
+
+* **Public Exposure**: The generated token is embedded directly in the final HTML and is publicly accessible.
+* **Short-Lived**: The GitHub action is scheduled via cron to rebuild twice an hour. Databricks tokens are short-lived (usually ≤ 1 hour) limiting the window of risk.
+* **Strictly Scoped**: The token generated by this pipeline is *only* capable of viewing the specific published dashboard. It cannot access underlying data, notebooks, or APIs.
