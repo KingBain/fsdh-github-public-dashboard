@@ -120,7 +120,7 @@ jobs:
           printf '%s' "$scoped_token" > token.txt
 
       - name: Upload token artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: databricks-token
           path: token.txt
@@ -131,7 +131,7 @@ jobs:
     needs: generate-token
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6.0.2
 
       - name: Download token artifact
         uses: actions/download-artifact@v4
@@ -160,9 +160,9 @@ jobs:
 
           rm -f index.html.bak
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6.0.0
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5.0.0
         with:
           path: "."
 
@@ -181,4 +181,4 @@ jobs:
 
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5.0.0
