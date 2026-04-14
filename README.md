@@ -78,17 +78,14 @@ Go to:
 
 Repo → Settings → Environments
 
-Create an environment called "github-pages"(if it doesnt already exist:
+Create an environment called "databicks-service":
+Set the Deployment branch to 'main'
+
 Create the following values 
 
 | Name                            | Value               |
 | ------------------------------- | ------------------- |
-| DATABRICKS_INSTANCE_URL         | your Databricks URL |
-| DATABRICKS_WORKSPACE_ID         | workspace ID        |
-| DATABRICKS_DASHBOARD_ID         | dashboard ID        |
 | DATABRICKS_SERVICE_PRINCIPAL_ID | client ID           |
-| DATABRICKS_EXTERNAL_VIEWER_ID   | public-user         |
-| DATABRICKS_EXTERNAL_VALUE       | viewer              |
 
 
 Create the following secretes:
@@ -97,8 +94,23 @@ Create the following secretes:
 | ----------------------------------- | ------------- |
 | DATABRICKS_SERVICE_PRINCIPAL_SECRET | client secret |
 
+<img width="789" height="1156" alt="image" src="https://github.com/user-attachments/assets/4ed78441-b899-4c7b-ac37-6cd3bdde6f8a" />
 
-<img width="458" height="806" alt="image" src="https://github.com/user-attachments/assets/8461c2f9-7107-48e5-aa28-edea3f893c8f" />
+
+## 4. Configure GitHub Actrion Variables
+
+Create the following variables 
+
+| Name                            | Value               |
+| ------------------------------- | ------------------- |
+| DATABRICKS_INSTANCE_URL         | your Databricks URL |
+| DATABRICKS_WORKSPACE_ID         | workspace ID        |
+| DATABRICKS_DASHBOARD_ID         | dashboard ID        |
+| DATABRICKS_EXTERNAL_VIEWER_ID   | github-repo-name    |
+| DATABRICKS_EXTERNAL_VALUE       | public-viewer              |
+
+<img width="805" height="761" alt="image" src="https://github.com/user-attachments/assets/e1f54aa4-96df-4965-a94f-b26eb4a7187c" />
+
 
 
 ---
