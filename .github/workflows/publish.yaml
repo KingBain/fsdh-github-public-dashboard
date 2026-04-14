@@ -13,7 +13,7 @@ permissions: read-all
 
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   generate-token:
@@ -37,7 +37,6 @@ jobs:
 
           INSTANCE_URL="${INSTANCE_URL%/}"
 
-          # Restored fix: URL-encode the ID and Secret per RFC 6749 section 2.3.1
           encoded_id="$(jq -rn --arg val "$SERVICE_PRINCIPAL_ID" '$val | @uri')"
           encoded_secret="$(jq -rn --arg val "$SERVICE_PRINCIPAL_SECRET" '$val | @uri')"
           basic_auth="$(printf '%s:%s' "$encoded_id" "$encoded_secret" | base64 -w 0)"
