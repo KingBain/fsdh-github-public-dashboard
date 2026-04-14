@@ -21,12 +21,8 @@ jobs:
     environment:
       name: databricks-dashboard
 
-    outputs:
-      databricks_scoped_token: ${{ steps.token.outputs.token }}
-
     steps:
       - name: Generate Databricks scoped token
-        id: token
         shell: bash
         env:
           INSTANCE_URL: ${{ vars.DATABRICKS_INSTANCE_URL }}
@@ -51,8 +47,6 @@ jobs:
               --data-urlencode "scope=all-apis" \
             | jq -r '.access_token'
           )"
-
-          echo "::add-mask::$oidc_token"
 
           tokeninfo="$(
             curl -sS -G \
@@ -95,9 +89,14 @@ jobs:
             | jq -r '.access_token'
           )"
 
-          echo "::add-mask::$scoped_token"
-          encoded_token="$(printf '%s' "$scoped_token" | base64 -w 0)"
-          echo "token=$encoded_token" >> "$GITHUB_OUTPUT"
+          # write token to file (this is the key change)
+          echo "$scoped_token" > token.txt
+
+      - name: Upload token artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: databricks-token
+          path: token.txt
 
   build-site:
     runs-on: ubuntu-latest
@@ -109,19 +108,21 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Download token artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: databricks-token
+
       - name: Inject token into HTML
         shell: bash
         env:
-          ENCODED_TOKEN: ${{ needs.generate-token.outputs.databricks_scoped_token }}
           INSTANCE_URL: ${{ vars.DATABRICKS_INSTANCE_URL }}
           WORKSPACE_ID: ${{ vars.DATABRICKS_WORKSPACE_ID }}
           DASHBOARD_ID: ${{ vars.DATABRICKS_DASHBOARD_ID }}
         run: |
           set -euo pipefail
 
-          TOKEN="$(printf '%s' "$ENCODED_TOKEN" | base64 -d)"
-
-          echo "::add-mask::$TOKEN"
+          TOKEN="$(cat token.txt)"
 
           escape() { printf '%s' "$1" | sed 's/[\/&]/\\&/g'; }
 
