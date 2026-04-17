@@ -130,21 +130,7 @@
       <section class="mb-600">
         <gcds-heading tag="h2">Dashboard</gcds-heading>
 
-        <div class="chart-block" id="dashboard-content"></div>
-
-        <script type="module">
-          import { DatabricksDashboard } from "https://cdn.jsdelivr.net/npm/@databricks/aibi-client@0.0.0-alpha.7/+esm";
-        
-          const dashboard = new DatabricksDashboard({
-            instanceUrl: "__DATABRICKS_INSTANCE_URL__",
-            workspaceId: "__DATABRICKS_WORKSPACE_ID__",
-            dashboardId: "__DATABRICKS_DASHBOARD_ID__",
-            token: "__DATABRICKS_TOKEN__",
-            container: document.getElementById("dashboard-content")
-          });
-        
-          dashboard.initialize();
-        </script>
+        <div class="chart-block" id="dashboard-content"><img src="demo.gif"/> </div>
 
       </section>
 
